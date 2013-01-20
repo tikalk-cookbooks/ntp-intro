@@ -8,17 +8,21 @@
 #
 
 
-package "ntp" do                                # like doing yum install ntp / apt-get install ntp
-    action [:install]
+package "ntp" do				# "ntp" applies to both ubuntu and centos 
+    action [:install]				# install package
+end
+ 
+service node[:ntp][:service] do
+    service_name node[:ntp][:service]         
+    action [:enable,:start,:restart]                   
 end
 
-template "/etc/ntp.conf" do                     # use a template to define /etc/ntp.conf
-    source "ntp.conf.erb"
-    variables( :ntp_server => "time.nist.gov" )
-    notifies :restart, "service[ntpd]"
+template "/etc/ntp.conf" do			# create / edit the /etc/ntp.conf file
+    source "ntp.conf.erb"			# defaults to templates/files/...
+    owner "root" 				# set file owner
+    group "root"				# set file group
+    mode 0644					# set file mode
+    notifies :restart, resources(:service => node[:ntp][:service])#, :delayed
 end
 
-service "ntpd" do                               # start the service
-    action [:enable,:start]
-end
 
